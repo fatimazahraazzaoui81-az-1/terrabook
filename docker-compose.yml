@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: terrabook_db
+    environment:
+      POSTGRES_DB: terrabook
+      POSTGRES_USER: terrabook_admin
+      POSTGRES_PASSWORD: terrabook_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - terrabook_postgres_data:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  terrabook_postgres_data:

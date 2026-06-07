@@ -1,0 +1,6 @@
+terrabook_analysis.md
+.venv
+node_modules
+ui
+.env
+.env.local

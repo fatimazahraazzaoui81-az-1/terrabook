@@ -42,6 +42,7 @@ class TerrainUpdate(BaseModel):
 
 class Terrain(TerrainBase):
     id: int
+    owner_id: Optional[str] = None
     created_at: datetime
     prix: List[Prix] = []
 
@@ -72,6 +73,7 @@ class ReservationUpdate(BaseModel):
 class Reservation(ReservationBase):
     id: int
     prix_total: Decimal
+    user_id: Optional[str] = None
     created_at: datetime
     terrain: Optional[Terrain] = None
 

@@ -19,6 +19,13 @@ export default function ReservationPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [bookedReservation, setBookedReservation] = useState<Reservation | null>(null);
+  const [userRole, setUserRole] = useState('CLIENT');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setUserRole(localStorage.getItem('tb_role') || 'CLIENT');
+    }
+  }, []);
 
   useEffect(() => {
     if (isNaN(id)) {
@@ -69,10 +76,10 @@ export default function ReservationPage() {
         <h2 className="text-[24px] font-bold text-error">Terrain non disponible</h2>
         <p className="text-outline max-w-[400px] mx-auto">{error || 'Le terrain demandé est introuvable.'}</p>
         <Link
-          href="/"
+          href={userRole === 'CLIENT' ? "/terrains" : "/"}
           className="inline-block bg-primary hover:bg-primary/95 text-white font-bold py-sm px-md rounded-md transition-colors"
         >
-          Retourner au Dashboard
+          {userRole === 'CLIENT' ? "Retourner aux Terrains" : "Retourner au Dashboard"}
         </Link>
       </div>
     );
@@ -82,12 +89,16 @@ export default function ReservationPage() {
     <div className="space-y-lg">
       {/* Breadcrumbs Navigation */}
       <nav className="flex items-center gap-xs font-sans text-label-sm text-outline py-xs">
-        <Link href="/" className="hover:text-primary transition-all duration-150">
-          Dashboard
-        </Link>
-        <ChevronRight size={14} className="text-[#c1c9c1]" />
-        <Link href="/reservations" className="hover:text-primary transition-all duration-150">
-          Réservations
+        {userRole !== 'CLIENT' && (
+          <>
+            <Link href="/" className="hover:text-primary transition-all duration-150">
+              Dashboard
+            </Link>
+            <ChevronRight size={14} className="text-[#c1c9c1]" />
+          </>
+        )}
+        <Link href="/terrains" className="hover:text-primary transition-all duration-150">
+          Terrains
         </Link>
         <ChevronRight size={14} className="text-[#c1c9c1]" />
         <span className="text-primary font-bold">Réservez un Terrain</span>

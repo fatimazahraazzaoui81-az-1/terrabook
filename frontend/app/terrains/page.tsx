@@ -22,6 +22,25 @@ export default function TerrainsPage() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [togglingId, setTogglingId] = useState<number | null>(null);
 
+  // RBAC state
+  const [userRole, setUserRole] = useState('CLIENT');
+  const [userId, setUserId] = useState('client_1');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setUserRole(localStorage.getItem('tb_role') || 'CLIENT');
+      setUserId(localStorage.getItem('tb_user_id') || 'client_1');
+    }
+  }, []);
+
+  const canManageTerrain = (terrain: Terrain) => {
+    if (userRole === 'ADMIN') return true;
+    if (userRole === 'OWNER') return terrain.owner_id === userId;
+    return false;
+  };
+
+  const canCreate = userRole === 'OWNER' || userRole === 'ADMIN';
+
   const load = async () => {
     try {
       setLoading(true);
@@ -80,13 +99,15 @@ export default function TerrainsPage() {
             {terrains.length} terrain{terrains.length !== 1 ? 's' : ''} au total
           </p>
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-xs bg-secondary hover:bg-[#27ae60] text-white font-bold px-lg py-sm rounded-md transition-all duration-200 shadow-sm"
-        >
-          <Plus size={18} />
-          Nouveau terrain
-        </button>
+        {canCreate && (
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-xs bg-secondary hover:bg-[#27ae60] text-white font-bold px-lg py-sm rounded-md transition-all duration-200 shadow-sm"
+          >
+            <Plus size={18} />
+            Nouveau terrain
+          </button>
+        )}
       </div>
 
       {/* Search & Filter */}
@@ -169,11 +190,10 @@ export default function TerrainsPage() {
                   </div>
                   {/* Status badge */}
                   <div className="absolute top-[10px] left-[10px]">
-                    <span className={`text-[11px] font-bold px-sm py-[3px] rounded-full ${
-                      terrain.disponible
+                    <span className={`text-[11px] font-bold px-sm py-[3px] rounded-full ${terrain.disponible
                         ? 'bg-[#EAF8F0] text-secondary'
                         : 'bg-[#FDF2F2] text-error'
-                    }`}>
+                      }`}>
                       {terrain.disponible ? '● Disponible' : '● Réservé'}
                     </span>
                   </div>
@@ -212,46 +232,41 @@ export default function TerrainsPage() {
                     )}
 
                     {/* Admin actions row */}
-                    <div className="flex items-center gap-sm">
-                      {/* Toggle availability */}
-                      <button
-                        onClick={() => handleToggle(terrain)}
-                        disabled={isToggling}
-                        title={terrain.disponible ? 'Marquer comme réservé' : 'Marquer comme disponible'}
-                        className={`flex-1 flex items-center justify-center gap-xs py-xs px-sm rounded-md font-bold text-[12px] transition-all ${
-                          terrain.disponible
-                            ? 'bg-[#EAF8F0] text-secondary hover:bg-secondary hover:text-white'
-                            : 'bg-[#FDF2F2] text-error hover:bg-error hover:text-white'
-                        } disabled:opacity-50`}
-                      >
-                        {isToggling ? (
-                          <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                        ) : terrain.disponible ? (
-                          <ToggleRight size={14} />
-                        ) : (
-                          <ToggleLeft size={14} />
-                        )}
-                        {terrain.disponible ? 'Libre' : 'Réservé'}
-                      </button>
+                    {canManageTerrain(terrain) && (
+                      <div className="flex items-center gap-sm">
+                        {/* Toggle availability */}
+                        <button
+                          onClick={() => handleToggle(terrain)}
+                          disabled={isToggling}
+                          title={terrain.disponible ? 'Marquer comme réservé' : 'Marquer comme disponible'}
+                          className={`flex-1 flex items-center justify-center gap-xs py-xs px-sm rounded-md font-bold text-[12px] transition-all ${terrain.disponible
+                              ? 'bg-warning/10 text-warning hover:bg-warning hover:text-white'
+                              : 'bg-secondary/10 text-secondary hover:bg-secondary hover:text-white'
+                            }`}
+                        >
+                          {terrain.disponible ? <ToggleLeft size={16} /> : <ToggleRight size={16} />}
+                          <span className="hidden sm:inline">{terrain.disponible ? 'Désactiver' : 'Activer'}</span>
+                        </button>
+                        
+                        {/* Edit */}
+                        <button
+                          onClick={() => setEditTerrain(terrain)}
+                          className="flex items-center justify-center p-[6px] rounded-md bg-[#ebefed] hover:bg-primary text-primary hover:text-white transition-all"
+                          title="Modifier"
+                        >
+                          <Edit2 size={16} />
+                        </button>
 
-                      {/* Edit */}
-                      <button
-                        onClick={() => setEditTerrain(terrain)}
-                        title="Modifier le terrain"
-                        className="flex items-center justify-center w-9 h-9 rounded-md bg-[#EFF6FF] hover:bg-[#3B82F6] text-[#3B82F6] hover:text-white transition-all"
-                      >
-                        <Edit2 size={15} />
-                      </button>
-
-                      {/* Delete */}
-                      <button
-                        onClick={() => setDeletingTerrain(terrain)}
-                        title="Supprimer le terrain"
-                        className="flex items-center justify-center w-9 h-9 rounded-md bg-[#FDF2F2] hover:bg-error text-error hover:text-white transition-all"
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
+                        {/* Delete */}
+                        <button
+                          onClick={() => setDeletingTerrain(terrain)}
+                          className="flex items-center justify-center p-[6px] rounded-md bg-[#FDF2F2] hover:bg-error text-error hover:text-white transition-all"
+                          title="Supprimer"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

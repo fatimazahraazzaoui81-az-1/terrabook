@@ -35,6 +35,24 @@ export default function HistoriqueTable({
   const [deleteTarget, setDeleteTarget] = useState<Reservation | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  // RBAC state
+  const [userRole, setUserRole] = useState('CLIENT');
+  const [userId, setUserId] = useState('client_1');
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setUserRole(localStorage.getItem('tb_role') || 'CLIENT');
+      setUserId(localStorage.getItem('tb_user_id') || 'client_1');
+    }
+  }, []);
+
+  const canManageReservation = (r: Reservation) => {
+    if (userRole === 'ADMIN') return true;
+    if (userRole === 'OWNER') return r.terrain?.owner_id === userId;
+    if (userRole === 'CLIENT') return r.user_id === userId;
+    return false;
+  };
+
   // Filter
   const filteredReservations = reservations.filter((r) => {
     const q = searchTerm.toLowerCase();
@@ -184,20 +202,24 @@ export default function HistoriqueTable({
                         >
                           <Eye size={14} />
                         </button>
-                        <button
-                          onClick={() => setEditTarget(r)}
-                          title="Modifier"
-                          className="w-8 h-8 flex items-center justify-center rounded-md bg-[#EFF6FF] hover:bg-[#3B82F6] text-[#3B82F6] hover:text-white transition-all"
-                        >
-                          <Edit2 size={14} />
-                        </button>
-                        <button
-                          onClick={() => setDeleteTarget(r)}
-                          title="Supprimer"
-                          className="w-8 h-8 flex items-center justify-center rounded-md bg-[#FDF2F2] hover:bg-error text-error hover:text-white transition-all"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                        {canManageReservation(r) && (
+                          <>
+                            <button
+                              onClick={() => setEditTarget(r)}
+                              title="Modifier"
+                              className="w-8 h-8 flex items-center justify-center rounded-md bg-[#EFF6FF] hover:bg-[#3B82F6] text-[#3B82F6] hover:text-white transition-all"
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                            <button
+                              onClick={() => setDeleteTarget(r)}
+                              title="Supprimer"
+                              className="w-8 h-8 flex items-center justify-center rounded-md bg-[#FDF2F2] hover:bg-error text-error hover:text-white transition-all"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>

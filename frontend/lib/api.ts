@@ -15,6 +15,7 @@ export interface Terrain {
   capacite: number;
   image_url: string;
   disponible: boolean;
+  owner_id: string;
   created_at: string;
   prix: Prix[];
 }
@@ -28,6 +29,7 @@ export interface Reservation {
   heure: string;
   date_reservation: string;
   prix_total: number;
+  user_id: string;
   created_at: string;
   terrain?: Terrain;
 }
@@ -76,6 +78,19 @@ export interface DashboardStats {
   revenusParJour: { date: string; revenu: number }[];
 }
 
+// ─── Auth headers helper ────────────────────────────────────────────────────
+
+function getAuthHeaders(): Record<string, string> {
+  if (typeof window !== 'undefined') {
+    const role = localStorage.getItem('tb_role') || 'ADMIN';
+    const userId = localStorage.getItem('tb_user_id') || 'admin_1';
+    return { 'X-User-Role': role, 'X-User-Id': userId };
+  }
+  return { 'X-User-Role': 'ADMIN', 'X-User-Id': 'admin_1' };
+}
+
+// ─── Response handler ───────────────────────────────────────────────────────
+
 async function handleResponse(response: Response) {
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
@@ -92,19 +107,19 @@ export async function getTerrains(type?: string): Promise<Terrain[]> {
   if (type && type !== 'Tous') {
     url.searchParams.append('type', type);
   }
-  const response = await fetch(url.toString(), { cache: 'no-store' });
+  const response = await fetch(url.toString(), { headers: getAuthHeaders(), cache: 'no-store' });
   return handleResponse(response);
 }
 
 export async function getTerrainById(id: number): Promise<Terrain> {
-  const response = await fetch(`${API_URL}/terrains/${id}`, { cache: 'no-store' });
+  const response = await fetch(`${API_URL}/terrains/${id}`, { headers: getAuthHeaders(), cache: 'no-store' });
   return handleResponse(response);
 }
 
 export async function createTerrain(input: CreateTerrainInput): Promise<Terrain> {
   const response = await fetch(`${API_URL}/terrains`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
   return handleResponse(response);
@@ -113,26 +128,30 @@ export async function createTerrain(input: CreateTerrainInput): Promise<Terrain>
 export async function updateTerrain(id: number, input: UpdateTerrainInput): Promise<Terrain> {
   const response = await fetch(`${API_URL}/terrains/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
   return handleResponse(response);
 }
 
 export async function deleteTerrain(id: number): Promise<void> {
-  const response = await fetch(`${API_URL}/terrains/${id}`, { method: 'DELETE' });
+  const response = await fetch(`${API_URL}/terrains/${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
   return handleResponse(response);
 }
 
 export async function toggleTerrainAvailability(id: number): Promise<Terrain> {
   const response = await fetch(`${API_URL}/terrains/${id}/disponibilite`, {
     method: 'PATCH',
+    headers: getAuthHeaders(),
   });
   return handleResponse(response);
 }
 
 export async function getTerrainPrix(id: number): Promise<Prix[]> {
-  const response = await fetch(`${API_URL}/terrains/${id}/prix`, { cache: 'no-store' });
+  const response = await fetch(`${API_URL}/terrains/${id}/prix`, { headers: getAuthHeaders(), cache: 'no-store' });
   return handleResponse(response);
 }
 
@@ -141,33 +160,36 @@ export async function getTerrainPrix(id: number): Promise<Prix[]> {
 export async function createReservation(input: CreateReservationInput): Promise<Reservation> {
   const response = await fetch(`${API_URL}/reservations`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
   return handleResponse(response);
 }
 
 export async function getReservations(): Promise<Reservation[]> {
-  const response = await fetch(`${API_URL}/reservations`, { cache: 'no-store' });
+  const response = await fetch(`${API_URL}/reservations`, { headers: getAuthHeaders(), cache: 'no-store' });
   return handleResponse(response);
 }
 
 export async function getReservationById(id: number): Promise<Reservation> {
-  const response = await fetch(`${API_URL}/reservations/${id}`, { cache: 'no-store' });
+  const response = await fetch(`${API_URL}/reservations/${id}`, { headers: getAuthHeaders(), cache: 'no-store' });
   return handleResponse(response);
 }
 
 export async function updateReservation(id: number, input: UpdateReservationInput): Promise<Reservation> {
   const response = await fetch(`${API_URL}/reservations/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
   return handleResponse(response);
 }
 
 export async function deleteReservation(id: number): Promise<void> {
-  const response = await fetch(`${API_URL}/reservations/${id}`, { method: 'DELETE' });
+  const response = await fetch(`${API_URL}/reservations/${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
   return handleResponse(response);
 }
 

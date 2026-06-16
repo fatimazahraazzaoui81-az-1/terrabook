@@ -12,6 +12,7 @@ class Terrain(Base):
     capacite = Column(Integer, nullable=True)
     image_url = Column(Text, nullable=True)
     disponible = Column(Boolean, default=True)
+    owner_id = Column(String(50), nullable=False, default="owner_1")
     created_at = Column(DateTime, default=func.now())
 
     # Cascade delete prices when terrain is deleted
@@ -41,6 +42,7 @@ class Reservation(Base):
     heure = Column(Time, nullable=False)
     date_reservation = Column(Date, nullable=False)
     prix_total = Column(Numeric(10, 2), nullable=False)
+    user_id = Column(String(50), nullable=False, default="client_1")
     created_at = Column(DateTime, default=func.now())
 
     terrain = relationship("Terrain", back_populates="reservations", lazy="joined")

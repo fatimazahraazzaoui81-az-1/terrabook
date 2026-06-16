@@ -27,6 +27,26 @@ export default function ReservationsPage() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [showNewReservation, setShowNewReservation] = useState(false);
 
+  // RBAC state
+  const [userRole, setUserRole] = useState('CLIENT');
+  const [userId, setUserId] = useState('client_1');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setUserRole(localStorage.getItem('tb_role') || 'CLIENT');
+      setUserId(localStorage.getItem('tb_user_id') || 'client_1');
+    }
+  }, []);
+
+  const canManageReservation = (r: Reservation) => {
+    if (userRole === 'ADMIN') return true;
+    if (userRole === 'OWNER') return r.terrain?.owner_id === userId;
+    if (userRole === 'CLIENT') return r.user_id === userId;
+    return false;
+  };
+
+  const canCreate = true;
+
   const load = async () => {
     try {
       setLoading(true);
@@ -76,17 +96,15 @@ export default function ReservationsPage() {
           </p>
         </div>
         <div className="flex items-center gap-sm">
-          <div className="bg-[#EAF8F0] px-lg py-sm rounded-md">
-            <span className="font-bold text-secondary text-[15px]">{filtered.length}</span>
-            <span className="text-outline text-[13px] ml-xs">affichée{filtered.length !== 1 ? 's' : ''}</span>
-          </div>
-          <button
-            onClick={() => setShowNewReservation(true)}
-            className="flex items-center gap-xs bg-secondary hover:bg-[#27ae60] text-white font-bold px-lg py-sm rounded-md transition-all duration-200 shadow-sm"
-          >
-            <Plus size={18} />
-            Nouvelle réservation
-          </button>
+          {canCreate && (
+            <button
+              onClick={() => setShowNewReservation(true)}
+              className="flex items-center gap-xs bg-secondary hover:bg-[#27ae60] text-white font-bold px-lg py-sm rounded-md transition-all duration-200 shadow-sm"
+            >
+              <Plus size={18} />
+              Nouvelle réservation
+            </button>
+          )}
         </div>
       </div>
 
@@ -211,20 +229,24 @@ export default function ReservationsPage() {
                         >
                           <Eye size={14} />
                         </button>
-                        <button
-                          onClick={() => setEditReservation(r)}
-                          title="Modifier"
-                          className="w-8 h-8 flex items-center justify-center rounded-md bg-[#EFF6FF] hover:bg-[#3B82F6] text-[#3B82F6] hover:text-white transition-all"
-                        >
-                          <Edit2 size={14} />
-                        </button>
-                        <button
-                          onClick={() => setDeleteTarget(r)}
-                          title="Supprimer"
-                          className="w-8 h-8 flex items-center justify-center rounded-md bg-[#FDF2F2] hover:bg-error text-error hover:text-white transition-all"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                        {canManageReservation(r) && (
+                          <>
+                            <button
+                              onClick={() => setEditReservation(r)}
+                              title="Modifier"
+                              className="w-8 h-8 flex items-center justify-center rounded-md bg-[#EFF6FF] hover:bg-[#3B82F6] text-[#3B82F6] hover:text-white transition-all"
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                            <button
+                              onClick={() => setDeleteTarget(r)}
+                              title="Supprimer"
+                              className="w-8 h-8 flex items-center justify-center rounded-md bg-[#FDF2F2] hover:bg-error text-error hover:text-white transition-all"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>

@@ -34,6 +34,22 @@ export default function NewReservationModal({ onClose, onCreated, preselectedTer
   const [formLoading, setFormLoading] = useState(false);
   const [createdReservation, setCreatedReservation] = useState<Reservation | null>(null);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const role = localStorage.getItem('tb_role') || 'ADMIN';
+      const userId = localStorage.getItem('tb_user_id') || 'admin_1';
+      if (role === 'CLIENT') {
+        if (userId === 'client_1') {
+          setNomClient('Marie Dupont');
+          setTelephone('0612345678');
+        } else if (userId === 'client_2') {
+          setNomClient('Jean Lemoine');
+          setTelephone('0687654321');
+        }
+      }
+    }
+  }, []);
+
   // Load available terrains
   useEffect(() => {
     if (preselectedTerrain) return;

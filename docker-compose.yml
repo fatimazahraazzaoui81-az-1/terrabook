@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: terrabook_admin
       POSTGRES_PASSWORD: terrabook_password
     ports:
-      - "5433:5432"
+      - "5435:5432"
     volumes:
       - terrabook_postgres_data:/var/lib/postgresql/data
     restart: always

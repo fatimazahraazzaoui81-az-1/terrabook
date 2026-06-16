@@ -12,6 +12,7 @@ import FicheModal from '../components/FicheModal';
 import NewReservationModal from '../components/NewReservationModal';
 import TerrainFormModal from '../components/TerrainFormModal';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 function SkeletonCard() {
   return (
@@ -41,12 +42,29 @@ const formatDate = (dateStr: string) => {
 };
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [latestReservations, setLatestReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const [showNewReservation, setShowNewReservation] = useState(false);
   const [showNewTerrain, setShowNewTerrain] = useState(false);
+
+  // RBAC state
+  const [userRole, setUserRole] = useState<string>('ADMIN');
+  const [userId, setUserId] = useState<string>('admin_1');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const role = localStorage.getItem('tb_role') || 'CLIENT';
+      const uid = localStorage.getItem('tb_user_id') || 'admin_1';
+      setUserRole(role);
+      setUserId(uid);
+      if (role === 'CLIENT') {
+        router.push('/terrains');
+      }
+    }
+  }, [router]);
 
   const load = async () => {
     try {
@@ -62,6 +80,22 @@ export default function DashboardPage() {
 
   useEffect(() => { load(); }, []);
 
+  if (userRole === 'CLIENT') {
+    return null;
+  }
+
+  const getUserDisplayName = () => {
+    if (userId === 'owner_1') return 'Jean (Propriétaire)';
+    if (userId === 'owner_2') return 'Pierre (Propriétaire)';
+    return 'Administrateur';
+  };
+
+  const getUserInitials = () => {
+    if (userId === 'owner_1') return 'JE';
+    if (userId === 'owner_2') return 'PI';
+    return 'AD';
+  };
+
   return (
     <div className="space-y-xxl">
       {/* Top Bar */}
@@ -71,9 +105,9 @@ export default function DashboardPage() {
           <p className="text-outline text-[14px] mt-[2px]">Vue d'ensemble de TerraBook</p>
         </div>
         <div className="flex items-center gap-sm">
-          <span className="text-label-md font-bold text-primary hidden sm:inline">Admin TerraBook</span>
+          <span className="text-label-md font-bold text-primary hidden sm:inline">{getUserDisplayName()}</span>
           <div className="w-[40px] h-[40px] rounded-full border-2 border-primary bg-[#EAF8F0] flex items-center justify-center font-extrabold text-primary text-sm">
-            AD
+            {getUserInitials()}
           </div>
         </div>
       </div>
@@ -348,11 +382,10 @@ export default function DashboardPage() {
                     </td>
                     <td className="px-lg py-sm font-sans text-body-md text-charcoal">{formatDate(r.date_reservation)}</td>
                     <td className="px-lg py-sm">
-                      <span className={`text-[11px] font-bold px-sm py-[3px] rounded-full uppercase ${
-                        r.moment === 'matin'
+                      <span className={`text-[11px] font-bold px-sm py-[3px] rounded-full uppercase ${r.moment === 'matin'
                           ? 'bg-[#FFF8E7] text-[#B45309]'
                           : 'bg-[#EEF2FF] text-[#4338CA]'
-                      }`}>
+                        }`}>
                         {r.moment}
                       </span>
                     </td>

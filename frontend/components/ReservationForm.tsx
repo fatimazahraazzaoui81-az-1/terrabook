@@ -17,6 +17,22 @@ export default function ReservationForm({ terrain, onSuccess }: ReservationFormP
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const role = localStorage.getItem('tb_role') || 'ADMIN';
+      const userId = localStorage.getItem('tb_user_id') || 'admin_1';
+      if (role === 'CLIENT') {
+        if (userId === 'client_1') {
+          setNomClient('Marie Dupont');
+          setTelephone('0612345678');
+        } else if (userId === 'client_2') {
+          setNomClient('Jean Lemoine');
+          setTelephone('0687654321');
+        }
+      }
+    }
+  }, []);
+
   // Prices from props
   const priceMatin = terrain.prix.find((p) => p.moment === 'matin')?.montant ?? 0;
   const priceSoir = terrain.prix.find((p) => p.moment === 'soir')?.montant ?? 0;
